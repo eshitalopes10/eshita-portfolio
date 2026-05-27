@@ -1,0 +1,621 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden}
+
+/* ── THEMES ── */
+:root{
+  --c1:#00ff88;--c2:#00cfff;--c3:#ffaa00;--c4:#cc44ff;
+  --bg:#000;--bg2:rgba(2,8,2,0.96);--border:rgba(0,255,136,0.2);
+  --glow:rgba(0,255,136,0.15);
+}
+.theme-cyber{
+  --c1:#00cfff;--c2:#0088ff;--c3:#00ffee;--c4:#7700ff;
+  --bg:#000510;--bg2:rgba(0,5,20,0.96);--border:rgba(0,207,255,0.2);
+  --glow:rgba(0,207,255,0.15);
+}
+.theme-neon{
+  --c1:#ff00aa;--c2:#ff6600;--c3:#ffff00;--c4:#aa00ff;
+  --bg:#0a000a;--bg2:rgba(15,0,15,0.96);--border:rgba(255,0,170,0.2);
+  --glow:rgba(255,0,170,0.15);
+}
+.theme-amber{
+  --c1:#ffaa00;--c2:#ff6600;--c3:#ffdd00;--c4:#ff3300;
+  --bg:#080400;--bg2:rgba(12,6,0,0.96);--border:rgba(255,170,0,0.2);
+  --glow:rgba(255,170,0,0.15);
+}
+
+#os{width:100%;height:640px;background:var(--bg);position:relative;overflow:hidden;border-radius:12px;font-family:'JetBrains Mono','Courier New',monospace;transition:background .5s}
+
+/* ── BOOT ── */
+#boot{position:absolute;inset:0;background:#000;z-index:100;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.boot-logo{font-size:10px;color:var(--c1);line-height:1.2;text-align:center;text-shadow:0 0 20px var(--c1);margin-bottom:20px;white-space:pre}
+.boot-bar-wrap{width:280px;height:2px;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.2);overflow:hidden;margin:12px 0}
+.boot-bar{height:100%;width:0;background:var(--c1);box-shadow:0 0 10px var(--c1);transition:width .08s}
+.boot-line{font-size:10px;color:rgba(0,255,136,.4);letter-spacing:2px;min-height:14px;margin-top:4px}
+#boot-enter{display:none;margin-top:20px;font-size:11px;color:var(--c1);letter-spacing:4px;animation:bl 1.2s step-end infinite;cursor:pointer}
+@keyframes bl{50%{opacity:0}}
+
+/* ── DESKTOP ── */
+#desktop{position:absolute;inset:0;display:none;flex-direction:column}
+#taskbar{height:36px;background:rgba(0,0,0,0.92);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;backdrop-filter:blur(10px)}
+#tb-logo{font-size:10px;color:var(--c1);letter-spacing:3px;text-shadow:0 0 10px var(--c1)}
+.tb-div{width:1px;height:18px;background:var(--border)}
+.tb-r{margin-left:auto;display:flex;align-items:center;gap:6px}
+#tb-clk{font-size:9px;color:var(--c2);letter-spacing:2px}
+.tb-btn{font-size:8px;color:var(--c1);opacity:.5;cursor:pointer;border:1px solid var(--border);padding:2px 7px;transition:all .2s;letter-spacing:1px;background:transparent;font-family:inherit}
+.tb-btn:hover{opacity:1;box-shadow:0 0 8px var(--glow)}
+
+#wallpaper{position:absolute;top:36px;left:0;right:0;bottom:40px}
+#wallpaper canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* WALLPAPER MODE LABEL */
+#wp-label{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--c1);opacity:.25;letter-spacing:3px;pointer-events:none;z-index:2}
+
+#icons{position:absolute;top:36px;left:0;right:0;bottom:40px;padding:18px;display:grid;grid-template-columns:repeat(auto-fill,70px);grid-auto-rows:82px;gap:4px;align-content:start;z-index:3;pointer-events:none}
+.icon{width:70px;text-align:center;cursor:pointer;padding:8px 4px;border-radius:4px;transition:all .15s;pointer-events:all}
+.icon:hover{background:var(--glow);box-shadow:0 0 12px var(--glow)}
+.icon-img{font-size:22px;margin-bottom:5px}
+.icon-label{font-size:8px;color:var(--c1);opacity:.8;letter-spacing:.5px;line-height:1.3;word-break:break-word}
+
+#dock{position:absolute;bottom:0;left:0;right:0;height:40px;background:rgba(0,0,0,0.88);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:6px;z-index:5;backdrop-filter:blur(10px)}
+.dk-btn{padding:4px 12px;background:transparent;border:1px solid var(--border);color:var(--c1);font-family:inherit;font-size:8px;cursor:pointer;letter-spacing:2px;transition:all .2s;border-radius:2px;opacity:.6}
+.dk-btn:hover{opacity:1;box-shadow:0 0 10px var(--glow)}
+
+/* ── WINDOWS ── */
+.win{position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;min-width:260px;min-height:180px;display:flex;flex-direction:column;backdrop-filter:blur(14px);box-shadow:0 0 40px var(--glow),0 20px 60px rgba(0,0,0,.8);transition:box-shadow .3s}
+.win:focus-within{box-shadow:0 0 60px var(--glow),0 24px 80px rgba(0,0,0,.9)}
+.win-bar{height:30px;background:rgba(0,0,0,.3);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:8px;cursor:grab;flex-shrink:0;user-select:none}
+.win-bar:active{cursor:grabbing}
+.wd{width:10px;height:10px;border-radius:50%;cursor:pointer;transition:filter .15s}
+.wd:hover{filter:brightness(1.5) saturate(1.3)}
+.wd.r{background:#ff5f57}.wd.y{background:#febc2e}.wd.g{background:#28c840}
+.win-title{font-size:8px;color:var(--c1);opacity:.6;letter-spacing:2px;flex:1;text-align:center}
+.win-body{flex:1;overflow:hidden}
+
+/* CONTENT STYLES */
+.vb{padding:15px;overflow-y:auto;height:100%;font-size:10.5px;line-height:1.8;color:var(--c1);opacity:.8}
+.vb::-webkit-scrollbar{width:3px}
+.vb::-webkit-scrollbar-thumb{background:var(--border)}
+.vtitle{font-size:13px;color:var(--c1);font-weight:700;letter-spacing:2px;margin-bottom:3px;opacity:1}
+.vsub{font-size:9px;color:var(--c2);letter-spacing:2px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);opacity:.8}
+.vkey{color:var(--c2);font-size:9px;letter-spacing:2px;margin-bottom:5px;opacity:.9}
+.vtag{display:inline-block;font-size:8px;padding:1px 6px;border:1px solid var(--border);color:var(--c1);margin:2px 2px 2px 0;opacity:.7}
+.vlink{display:inline-block;font-size:9px;padding:4px 11px;border:1px solid var(--c2);color:var(--c2);text-decoration:none;margin:3px 3px 3px 0;transition:all .2s;letter-spacing:1px;font-family:inherit;opacity:.7}
+.vlink:hover{opacity:1;box-shadow:0 0 10px var(--glow);border-color:var(--c1);color:var(--c1)}
+.vlink.g{border-color:var(--c1);color:var(--c1)}
+.vlink.p{border-color:var(--c4);color:var(--c4)}
+.vlink.a{border-color:var(--c3);color:var(--c3)}
+.srow{margin-bottom:9px}
+.stop{display:flex;justify-content:space-between;font-size:9px;margin-bottom:3px}
+.sbg{height:4px;background:rgba(255,255,255,.05);border:1px solid var(--border);overflow:hidden}
+.sbar{height:100%;width:0%;transition:width 1.1s ease;box-shadow:0 0 5px var(--c1)}
+.eblk{border-left:2px solid var(--c1);padding-left:12px;margin-bottom:14px}
+.eco{font-size:12px;color:var(--c1);font-weight:700}
+.erole{font-size:9px;color:var(--c2);margin:2px 0}
+.edate{font-size:8px;color:var(--c3);opacity:.6}
+.eli{font-size:10px;color:rgba(255,255,255,.35);padding-left:10px;position:relative;line-height:1.7}
+.eli::before{content:'›';position:absolute;left:0;color:var(--c1);opacity:.4}
+.pcard{border:1px solid var(--border);padding:13px;margin-bottom:12px;position:relative;transition:all .2s}
+.pcard::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:var(--c1)}
+.pcard:hover{box-shadow:0 0 16px var(--glow)}
+.pn{font-size:12px;color:var(--c1);font-weight:700;letter-spacing:1px;margin:4px 0 6px}
+.pd{font-size:10px;color:rgba(255,255,255,.35);line-height:1.6;margin-bottom:8px}
+.ccard{border:1px solid var(--border);padding:10px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
+.ccard:hover{box-shadow:0 0 12px var(--glow)}
+.cname{color:var(--c4);font-size:11px;font-weight:700}
+.cid{font-size:8px;color:var(--c4);opacity:.4;margin-top:2px;letter-spacing:2px}
+.term-out{height:100%;overflow-y:auto;padding:11px;font-size:11px;line-height:1.75;color:var(--c1)}
+.term-out::-webkit-scrollbar{width:3px}
+.term-out::-webkit-scrollbar-thumb{background:var(--border)}
+.trow{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
+.tprompt{color:var(--c2);white-space:nowrap;flex-shrink:0;font-size:10px}
+.tinput{background:transparent;border:none;outline:none;color:var(--c1);font-family:inherit;font-size:11px;flex:1;min-width:40px;caret-color:var(--c1)}
+.fmtb{height:28px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:6px;flex-shrink:0}
+.fmbtn{background:transparent;border:1px solid var(--border);color:var(--c1);font-size:8px;padding:1px 7px;cursor:pointer;font-family:inherit;opacity:.6;transition:all .2s}
+.fmbtn:hover{opacity:1}
+.fmgrid{display:grid;grid-template-columns:repeat(auto-fill,88px);gap:7px;padding:12px;overflow-y:auto;height:calc(100% - 28px)}
+.fmitem{text-align:center;cursor:pointer;padding:7px 3px;border:1px solid transparent;border-radius:3px;transition:all .15s}
+.fmitem:hover{background:var(--glow);border-color:var(--border)}
+.fmicon{font-size:22px;margin-bottom:3px}
+.fmname{font-size:8px;color:var(--c1);opacity:.7;word-break:break-word;line-height:1.3}
+.cfrow{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding:7px 0}
+.cflbl{font-size:9px;color:var(--c1);white-space:nowrap;min-width:78px}
+.cfinp{background:transparent;border:none;outline:none;color:var(--c2);font-family:inherit;font-size:10px;flex:1;caret-color:var(--c1)}
+.cfinp::placeholder{color:rgba(255,255,255,.1)}
+.cfsend{margin-top:10px;padding:8px 22px;background:transparent;border:1px solid var(--c1);color:var(--c1);font-family:inherit;font-size:9px;cursor:pointer;letter-spacing:3px;clip-path:polygon(6px 0%,100% 0%,calc(100%-6px) 100%,0% 100%);transition:all .25s}
+.cfsend:hover{box-shadow:0 0 14px var(--glow)}
+
+/* THEME/WALLPAPER PANEL */
+#tw-panel{position:absolute;top:44px;right:12px;width:220px;background:var(--bg2);border:1px solid var(--border);z-index:30;display:none;backdrop-filter:blur(12px);box-shadow:0 0 30px var(--glow)}
+#tw-panel.show{display:block}
+.twp-head{padding:8px 12px;border-bottom:1px solid var(--border);font-size:9px;color:var(--c1);letter-spacing:2px;display:flex;justify-content:space-between;align-items:center}
+.twp-sec{padding:10px 12px;border-bottom:1px solid var(--border)}
+.twp-label{font-size:8px;color:var(--c2);letter-spacing:2px;margin-bottom:7px;opacity:.7}
+.tw-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.tw-opt{padding:6px 8px;border:1px solid var(--border);font-size:8px;color:var(--c1);cursor:pointer;transition:all .2s;text-align:center;letter-spacing:1px;opacity:.6;font-family:inherit;background:transparent}
+.tw-opt:hover,.tw-opt.on{opacity:1;border-color:var(--c1);box-shadow:0 0 8px var(--glow)}
+
+#glitch{position:absolute;inset:0;z-index:200;pointer-events:none;opacity:0}
+#notif{position:absolute;top:44px;right:12px;z-index:40;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.ni{background:rgba(0,0,0,.95);border:1px solid var(--border);border-left:2px solid var(--c1);padding:7px 11px;font-size:9px;color:var(--c1);letter-spacing:1px;opacity:0;transform:translateX(20px);transition:all .3s;min-width:190px;max-width:230px}
+.ni.show{opacity:1;transform:translateX(0)}
+</style>
+</head>
+<body>
+<div id="os">
+  <div id="glitch"></div>
+  <div id="notif"></div>
+
+  <!-- BOOT -->
+  <div id="boot">
+    <div class="boot-logo" id="boot-logo"></div>
+    <div class="boot-bar-wrap"><div class="boot-bar" id="bbar"></div></div>
+    <div class="boot-line" id="bline">Initializing...</div>
+    <div id="boot-enter" onclick="launchDesktop()">▶ &nbsp;PRESS TO BOOT &nbsp;◀</div>
+  </div>
+
+  <!-- DESKTOP -->
+  <div id="desktop">
+    <div id="taskbar">
+      <div id="tb-logo">ESHITA_OS</div>
+      <div class="tb-div"></div>
+      <span style="font-size:8px;opacity:.4;letter-spacing:1px">v3.0</span>
+      <div class="tb-r">
+        <div id="tb-clk">00:00:00</div>
+        <button class="tb-btn" onclick="toggleTWPanel()">⚙ THEME</button>
+        <button class="tb-btn" onclick="toggleSfx()" id="sfxbtn">SFX ON</button>
+      </div>
+    </div>
+
+    <!-- THEME/WALLPAPER PANEL -->
+    <div id="tw-panel">
+      <div class="twp-head"><span>SYSTEM SETTINGS</span><span style="cursor:pointer;opacity:.5" onclick="toggleTWPanel()">✕</span></div>
+      <div class="twp-sec">
+        <div class="twp-label">// COLOR THEME</div>
+        <div class="tw-grid">
+          <button class="tw-opt on" id="th-matrix" onclick="setTheme('matrix')">MATRIX</button>
+          <button class="tw-opt" id="th-cyber" onclick="setTheme('cyber')">CYBER</button>
+          <button class="tw-opt" id="th-neon" onclick="setTheme('neon')">NEON</button>
+          <button class="tw-opt" id="th-amber" onclick="setTheme('amber')">AMBER</button>
+        </div>
+      </div>
+      <div class="twp-sec">
+        <div class="twp-label">// WALLPAPER</div>
+        <div class="tw-grid">
+          <button class="tw-opt on" id="wp-matrix" onclick="setWallpaper('matrix')">MATRIX</button>
+          <button class="tw-opt" id="wp-hex" onclick="setWallpaper('hex')">HEX GRID</button>
+          <button class="tw-opt" id="wp-circuit" onclick="setWallpaper('circuit')">CIRCUIT</button>
+          <button class="tw-opt" id="wp-stars" onclick="setWallpaper('stars')">STARFIELD</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="wallpaper"><canvas id="wc"></canvas></div>
+    <div id="wp-label">MATRIX RAIN</div>
+
+    <div id="icons">
+      <div class="icon" ondblclick="openTerminal()"><div class="icon-img">💻</div><div class="icon-label">terminal.sh</div></div>
+      <div class="icon" ondblclick="openFM()"><div class="icon-img">📁</div><div class="icon-label">filesystem/</div></div>
+      <div class="icon" ondblclick="openFile('about')"><div class="icon-img">👤</div><div class="icon-label">about.txt</div></div>
+      <div class="icon" ondblclick="openFile('skills')"><div class="icon-img">⚡</div><div class="icon-label">skills.sys</div></div>
+      <div class="icon" ondblclick="openFile('projects')"><div class="icon-img">🚀</div><div class="icon-label">projects/</div></div>
+      <div class="icon" ondblclick="openFile('experience')"><div class="icon-img">📋</div><div class="icon-label">experience.log</div></div>
+      <div class="icon" ondblclick="openFile('certs')"><div class="icon-img">🎖️</div><div class="icon-label">certs.db</div></div>
+      <div class="icon" ondblclick="openContact()"><div class="icon-img">📡</div><div class="icon-label">uplink.exe</div></div>
+    </div>
+
+    <div id="dock">
+      <button class="dk-btn" onclick="openTerminal()">TERMINAL</button>
+      <button class="dk-btn" onclick="openFM()">FILES</button>
+      <button class="dk-btn" onclick="openFile('projects')">PROJECTS</button>
+      <button class="dk-btn" onclick="openFile('skills')">SKILLS</button>
+      <button class="dk-btn" onclick="openFile('certs')">CERTS</button>
+      <button class="dk-btn" onclick="openContact()">UPLINK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ REAL LINKS ══
+const L={
+  devlens_gh:'https://github.com/eshitalopes10/devlens-ai',
+  devlens_demo:'https://devlens-ai-umber.vercel.app/',
+  codesnap_gh:'https://github.com/eshitalopes10/codesnap',
+  codesnap_demo:'https://codesnap-sable.vercel.app/',
+  stock_gh:'https://github.com/eshitalopes10',
+  certs:'https://drive.google.com/drive/folders/1G3PVx4cZ1HvZekjxstHF8F9XZ7WSS9IS?usp=sharing',
+  linkedin:'https://linkedin.com/in/eshita-lopes-9745452a3',
+  email:'mailto:eshitalopes@gmail.com',
+  phone:'tel:+917028126650',
+};
+
+// ══ AUDIO ENGINE ══
+const AC=new(window.AudioContext||window.webkitAudioContext)();
+let sfxOn=true;
+function toggleSfx(){sfxOn=!sfxOn;document.getElementById('sfxbtn').textContent='SFX '+(sfxOn?'ON':'OFF');}
+function p(f,d,v=.07,tp='sine',sw=0){
+  if(!sfxOn)return;
+  try{const o=AC.createOscillator(),g=AC.createGain(),flt=AC.createBiquadFilter();
+    flt.type='lowpass';flt.frequency.value=3000;
+    o.connect(flt);flt.connect(g);g.connect(AC.destination);
+    o.type=tp;o.frequency.setValueAtTime(f,AC.currentTime);
+    if(sw)o.frequency.exponentialRampToValueAtTime(sw,AC.currentTime+d);
+    g.gain.setValueAtTime(v,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);
+    o.start();o.stop(AC.currentTime+d+.02);}catch(e){}
+}
+
+// ── UNIQUE APP SOUNDS ──
+const SND={
+  // Terminal — old CRT keyboard beep + power hum
+  terminal:{
+    open:()=>{p(80,.15,.1,'sawtooth');setTimeout(()=>p(160,.1,.07,'sawtooth'),80);setTimeout(()=>p(320,.2,.09,'square'),160);setTimeout(()=>p(640,.15,.06,'square'),280);},
+    close:()=>{p(320,.08,.06,'square',80);},
+    type:()=>p(220+Math.random()*120,.018,.028,'square'),
+  },
+  // Files — cabinet drawer opening, paper rustle feel
+  files:{
+    open:()=>{p(200,.12,.07,'triangle',400);setTimeout(()=>{for(let i=0;i<5;i++)setTimeout(()=>p(300+i*60,.04,.03,'triangle'),i*30)},120);},
+    close:()=>{p(400,.1,.06,'triangle',200);},
+  },
+  // About — warm soft chime, like opening a profile card
+  about:{
+    open:()=>{[523,659,784].forEach((f,i)=>setTimeout(()=>p(f,.25,.07,'sine'),i*80));},
+    close:()=>p(523,.1,.05,'sine',400),
+  },
+  // Skills — diagnostic boot, ascending electronic sweep
+  skills:{
+    open:()=>{p(110,.05,.06,'sawtooth');setTimeout(()=>p(220,.05,.06,'sawtooth'),60);setTimeout(()=>p(440,.05,.06,'sawtooth'),120);setTimeout(()=>p(880,.1,.08,'sawtooth'),180);setTimeout(()=>p(1760,.12,.06,'sine'),260);},
+    close:()=>p(880,.08,.05,'sawtooth',220),
+    skillPop:(i)=>p(261+[0,37,70,110,147,175,207,277][i%8],.12,.06,'sine'),
+  },
+  // Projects — mission briefing, dramatic low then sharp alert
+  projects:{
+    open:()=>{p(60,.3,.12,'sawtooth');setTimeout(()=>{p(440,.1,.08,'square');p(554,.1,.05,'square');p(659,.12,.07,'square');},280);},
+    close:()=>{p(440,.06,.06,'square',220);},
+  },
+  // Experience — log file opening, typewriter chunk
+  experience:{
+    open:()=>{for(let i=0;i<8;i++)setTimeout(()=>p(180+i*20,.03,.05,'square'),i*35);setTimeout(()=>p(400,.15,.06,'triangle'),300);},
+    close:()=>{for(let i=0;i<3;i++)setTimeout(()=>p(300-i*40,.03,.04,'square'),i*30);},
+  },
+  // Certs — achievement unlocked ascending arpeggio
+  certs:{
+    open:()=>{[261,330,392,523,659,784,1047].forEach((f,i)=>setTimeout(()=>p(f,.18,.07,'sine'),i*55));},
+    close:()=>p(784,.1,.05,'sine',392),
+  },
+  // Contact — radio signal / transmission beeps
+  contact:{
+    open:()=>{const morse=[1,0,1,1,0,1,0,1];let t=0;morse.forEach(b=>{if(b)setTimeout(()=>p(800,.08,.09,'sine'),t);t+=120;});},
+    close:()=>p(800,.12,.06,'sine',400),
+  },
+  // Theme panel — mechanical click
+  settings:{
+    open:()=>{p(600,.05,.06,'square');setTimeout(()=>p(900,.04,.05,'square'),60);},
+    close:()=>p(900,.04,.05,'square',600),
+  },
+  // Generic fallbacks
+  notify:()=>{p(880,.05,.05,'sine');setTimeout(()=>p(1100,.07,.05,'sine'),60);},
+  glitch:()=>{for(let i=0;i<4;i++)setTimeout(()=>p(80+Math.random()*200,.04,.05,'sawtooth'),i*25);},
+  boot:(i)=>p(110*Math.pow(1.15,i),.08,.07,'sawtooth'),
+  ok:()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>p(f,.18,.07,'sine'),i*55)),
+  err:()=>p(160,.25,.1,'sawtooth',80),
+  ls:()=>[261,294,330,349,392].forEach((f,i)=>setTimeout(()=>p(f,.06,.04,'triangle'),i*40)),
+  swoosh:()=>p(600,.15,.06,'sine',200),
+};
+
+// ══ WALLPAPER ENGINE ══
+const wc=document.getElementById('wc'),wx=wc.getContext('2d');
+let wt=0,wpMode='matrix';
+let mdrops=[],stars=[],circuits=[];
+
+function initWall(){
+  wc.width=wc.offsetWidth||800;wc.height=wc.offsetHeight||560;
+  mdrops=Array(Math.floor(wc.width/14)).fill(0).map(()=>Math.random()*-60);
+  stars=Array(120).fill(0).map(()=>({x:Math.random()*wc.width,y:Math.random()*wc.height,r:Math.random()*1.5+.3,s:Math.random()*.5+.1,b:Math.random()}));
+  circuits=Array(18).fill(0).map(()=>genCircuit());
+}
+function genCircuit(){
+  const x=Math.random()*800,y=Math.random()*560;
+  const segs=[];let cx=x,cy=y;
+  for(let i=0;i<6+Math.floor(Math.random()*6);i++){
+    const d=Math.floor(Math.random()*4),l=20+Math.floor(Math.random()*60);
+    const nx=cx+(d===0?l:d===1?-l:0),ny=cy+(d===2?l:d===3?-l:0);
+    segs.push({x1:cx,y1:cy,x2:nx,y2:ny});cx=nx;cy=ny;
+  }
+  return{segs,prog:0,speed:.008+Math.random()*.012};
+}
+window.addEventListener('resize',initWall);
+initWall();
+
+const MCHARS='01アイウエオカキクケコ<>{}[]();=+-*/eshita0123456789';
+
+function getThemeColor(a=1){
+  const c=getComputedStyle(document.getElementById('os')).getPropertyValue('--c1').trim()||'#00ff88';
+  // parse hex
+  const m=c.match(/^#([0-9a-f]{6})$/i);
+  if(m){const r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16);return`rgba(${r},${g},${b},${a})`;}
+  return`rgba(0,255,136,${a})`;
+}
+
+function drawWall(){
+  wt+=.006;
+  const col=getThemeColor;
+
+  if(wpMode==='matrix'){
+    wx.fillStyle='rgba(0,0,0,0.055)';wx.fillRect(0,0,wc.width,wc.height);
+    mdrops.forEach((y,i)=>{
+      const ch=MCHARS[Math.floor(Math.random()*MCHARS.length)],br=Math.random()>.94;
+      wx.fillStyle=br?'#ccffdd':col(br?.7:.28);wx.globalAlpha=1;
+      wx.font=(br?'bold ':'')+'12px JetBrains Mono,monospace';
+      wx.fillText(ch,i*14,y*14);
+      if(y*14>wc.height&&Math.random()>.975)mdrops[i]=0;mdrops[i]+=.45;
+    });
+  }
+
+  else if(wpMode==='hex'){
+    wx.clearRect(0,0,wc.width,wc.height);
+    wx.fillStyle='rgba(0,0,0,0.04)';wx.fillRect(0,0,wc.width,wc.height);
+    const R=30,cs=Math.ceil(wc.width/(R*1.73))+2,rs=Math.ceil(wc.height/(R*1.5))+2;
+    for(let r=0;r<rs;r++)for(let c=0;c<cs;c++){
+      const cx=c*R*1.73+(r%2)*R*.865,cy=r*R*1.5;
+      const d=Math.sqrt((cx-wc.width/2)**2+(cy-wc.height/2)**2);
+      const wave=Math.sin(d*.013-wt*1.2)*Math.cos(d*.007+wt*.5);
+      const al=Math.max(0,wave*.5+.04);
+      wx.beginPath();for(let a=0;a<6;a++){const ax=cx+R*.88*Math.cos(a*Math.PI/3),ay=cy+R*.88*Math.sin(a*Math.PI/3);a===0?wx.moveTo(ax,ay):wx.lineTo(ax,ay);}
+      wx.closePath();wx.strokeStyle=col(al);wx.lineWidth=.6;wx.stroke();
+      if(al>.3){wx.fillStyle=col(al*.12);wx.fill();}
+    }
+  }
+
+  else if(wpMode==='circuit'){
+    wx.fillStyle='rgba(0,0,0,0.04)';wx.fillRect(0,0,wc.width,wc.height);
+    // grid
+    wx.strokeStyle=col(.04);wx.lineWidth=.5;
+    for(let x=0;x<wc.width;x+=40){wx.beginPath();wx.moveTo(x,0);wx.lineTo(x,wc.height);wx.stroke();}
+    for(let y=0;y<wc.height;y+=40){wx.beginPath();wx.moveTo(0,y);wx.lineTo(wc.width,y);wx.stroke();}
+    // circuit traces
+    circuits.forEach(ct=>{
+      ct.prog+=ct.speed;
+      const total=ct.segs.length;
+      const filled=Math.min(ct.prog,total);
+      ct.segs.forEach((s,i)=>{
+        if(i>filled)return;
+        const segFrac=i<Math.floor(filled)?1:filled-Math.floor(filled);
+        const x2=s.x1+(s.x2-s.x1)*segFrac,y2=s.y1+(s.y2-s.y1)*segFrac;
+        wx.strokeStyle=col(.5);wx.lineWidth=1.2;
+        wx.beginPath();wx.moveTo(s.x1,s.y1);wx.lineTo(x2,y2);wx.stroke();
+        // nodes
+        wx.fillStyle=col(.8);wx.beginPath();wx.arc(s.x1,s.y1,2,0,Math.PI*2);wx.fill();
+      });
+      if(ct.prog>total+1){Object.assign(ct,genCircuit());ct.prog=0;}
+    });
+    // pulse dots
+    if(Math.random()>.97){wx.fillStyle=col(.9);wx.shadowColor=col(1);wx.shadowBlur=6;wx.beginPath();wx.arc(Math.random()*wc.width,Math.random()*wc.height,2,0,Math.PI*2);wx.fill();wx.shadowBlur=0;}
+  }
+
+  else if(wpMode==='stars'){
+    wx.fillStyle='rgba(0,0,0,0.06)';wx.fillRect(0,0,wc.width,wc.height);
+    // nebula
+    const grd=wx.createRadialGradient(wc.width*.5,wc.height*.5,0,wc.width*.5,wc.height*.5,wc.width*.6);
+    grd.addColorStop(0,col(.06));grd.addColorStop(1,'transparent');
+    wx.fillStyle=grd;wx.fillRect(0,0,wc.width,wc.height);
+    // stars
+    stars.forEach(s=>{
+      s.b+=.02;
+      const br=Math.abs(Math.sin(s.b))*(.5+s.r*.3);
+      wx.fillStyle=col(br);wx.shadowColor=col(br);wx.shadowBlur=s.r*3;
+      wx.beginPath();wx.arc(s.x,s.y,s.r,0,Math.PI*2);wx.fill();wx.shadowBlur=0;
+      s.y-=s.s*.3;if(s.y<0){s.y=wc.height;s.x=Math.random()*wc.width;}
+    });
+    // shooting star occasionally
+    if(Math.random()>.998){
+      const sx=Math.random()*wc.width,sy=Math.random()*wc.height*.5;
+      wx.strokeStyle=col(.8);wx.lineWidth=1.5;
+      wx.beginPath();wx.moveTo(sx,sy);wx.lineTo(sx+60,sy+20);wx.stroke();
+    }
+  }
+}
+setInterval(drawWall,40);
+
+// ══ THEME SWITCHER ══
+let curTheme='matrix';
+function setTheme(t){
+  curTheme=t;
+  const os=document.getElementById('os');
+  os.className=t==='matrix'?'':'theme-'+t;
+  document.querySelectorAll('[id^="th-"]').forEach(b=>b.classList.remove('on'));
+  document.getElementById('th-'+t).classList.add('on');
+  SND.settings.open();notify('Theme: '+t.toUpperCase());
+}
+
+// ══ WALLPAPER SWITCHER ══
+const WP_NAMES={matrix:'MATRIX RAIN',hex:'HEX GRID',circuit:'CIRCUIT BOARD',stars:'STARFIELD'};
+function setWallpaper(mode){
+  wpMode=mode;
+  wx.clearRect(0,0,wc.width,wc.height);
+  document.querySelectorAll('[id^="wp-"]').forEach(b=>b.classList.remove('on'));
+  document.getElementById('wp-'+mode).classList.add('on');
+  document.getElementById('wp-label').textContent=WP_NAMES[mode];
+  SND.settings.open();notify('Wallpaper: '+WP_NAMES[mode]);
+}
+
+// ══ THEME PANEL TOGGLE ══
+let twOpen=false;
+function toggleTWPanel(){
+  const p=document.getElementById('tw-panel');twOpen=!twOpen;
+  if(twOpen){p.classList.add('show');SND.settings.open();}
+  else{p.classList.remove('show');SND.settings.close();}
+}
+
+// ══ CLOCK ══
+setInterval(()=>{const n=new Date(),el=document.getElementById('tb-clk');if(el)el.textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;},1000);
+
+// ══ GLITCH ══
+const GL=document.getElementById('glitch');let gx=false;
+function doGlitch(){
+  if(gx)return;gx=true;SND.glitch();
+  let n=0;const iv=setInterval(()=>{GL.style.opacity=Math.random()>.5?'1':'0';GL.style.background=`rgba(0,255,136,${Math.random()*.07})`;GL.style.transform=`translateX(${(Math.random()-.5)*6}px)`;GL.style.clipPath=Math.random()>.5?`inset(${Math.random()*80}% 0 ${Math.random()*8}% 0)`:'none';if(++n>7){clearInterval(iv);GL.style.opacity='0';GL.style.transform='none';GL.style.clipPath='none';gx=false;}},35);
+}
+setInterval(()=>{if(Math.random()>.84)doGlitch();},4000);
+
+// ══ NOTIFICATIONS ══
+function notify(msg,col=null){
+  const d=document.getElementById('notif');
+  // hide theme panel when notif would overlap
+  const el=document.createElement('div');el.className='ni';if(col)el.style.color=col;
+  el.textContent='▶ '+msg;d.appendChild(el);SND.notify();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),350);},2600);
+}
+
+// ══ BOOT ══
+const ASCII=`  ███████╗███████╗██╗  ██╗██╗████████╗ █████╗\n  ██╔════╝██╔════╝██║  ██║██║╚══██╔══╝██╔══██╗\n  █████╗  ███████╗███████║██║   ██║   ███████║\n  ██╔══╝  ╚════██║██╔══██║██║   ██║   ██╔══██║\n  ███████╗███████║██║  ██║██║   ██║   ██║  ██║\n  ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝   ╚═╝  ╚═╝`;
+const BS=['Checking hardware integrity...','Loading BIOS v4.2.0...','Mounting /dev/brain...','Loading neural drivers...','Scanning skill registry...','Mounting project filesystem...','Decrypting experience logs...','Starting window manager...','Launching ESHITA_OS v3.0...'];
+let bi=0;document.getElementById('boot-logo').textContent=ASCII;
+function bootStep(){
+  if(bi>=BS.length){document.getElementById('boot-enter').style.display='block';return;}
+  document.getElementById('bline').textContent=BS[bi];
+  document.getElementById('bbar').style.width=((bi+1)/BS.length*100)+'%';
+  SND.boot(bi%8);bi++;setTimeout(bootStep,300);
+}
+setTimeout(bootStep,600);
+function launchDesktop(){
+  SND.ok();doGlitch();
+  const b=document.getElementById('boot');b.style.transition='opacity .5s';b.style.opacity='0';
+  setTimeout(()=>{b.style.display='none';const d=document.getElementById('desktop');d.style.display='flex';d.style.flexDirection='column';notify('Welcome back, root.');setTimeout(()=>notify('⚙ THEME button → change theme & wallpaper'),1400);},500);
+}
+
+// ══ WINDOW MANAGER ══
+let zTop=10;const wins={};
+const APP_SND={terminal:SND.terminal,files:SND.files,about:SND.about,skills:SND.skills,projects:SND.projects,experience:SND.experience,certs:SND.certs,contact:SND.contact};
+
+function makeWin(id,title,w,h,x,y,body){
+  if(wins[id]){bringFront(id);return null;}
+  const appKey=Object.keys(APP_SND).find(k=>id===k||id.startsWith(k));
+  if(appKey&&APP_SND[appKey]?.open)APP_SND[appKey].open();
+  else SND.settings.open();
+  const el=document.createElement('div');el.className='win';el.id='win-'+id;
+  el.style.cssText=`width:${w}px;height:${h}px;left:${x}px;top:${y}px;z-index:${++zTop}`;
+  el.innerHTML=`<div class="win-bar" onmousedown="startDrag(event,'${id}')"><div class="wd r" onclick="closeWin('${id}')"></div><div class="wd y" onclick="minWin('${id}')"></div><div class="wd g" onclick="maxWin('${id}')"></div><div class="win-title">${title}</div></div><div class="win-body" id="wb-${id}">${body}</div>`;
+  document.getElementById('desktop').appendChild(el);
+  wins[id]={el,x,y,w,h,min:false,max:false,ox:x,oy:y,ow:w,oh:h};
+  el.addEventListener('mousedown',()=>bringFront(id));
+  notify('Opened: '+title);return el;
+}
+function closeWin(id){
+  const appKey=Object.keys(APP_SND).find(k=>id===k||id.startsWith(k));
+  if(appKey&&APP_SND[appKey]?.close)APP_SND[appKey].close();
+  doGlitch();
+  const el=document.getElementById('win-'+id);
+  if(el){el.style.transition='opacity .2s,transform .2s';el.style.opacity='0';el.style.transform='scale(.95)';setTimeout(()=>{el.remove();delete wins[id];},220);}
+}
+function minWin(id){SND.swoosh();const el=document.getElementById('win-'+id);if(!el)return;const s=wins[id];if(!s.min){el.style.transition='all .2s';el.style.transform='scale(.05)';el.style.opacity='0';s.min=true;}else{el.style.transform='scale(1)';el.style.opacity='1';s.min=false;bringFront(id);}}
+function maxWin(id){const el=document.getElementById('win-'+id);if(!el)return;const s=wins[id];SND.swoosh();el.style.transition='all .2s';if(!s.max){el.style.left='0';el.style.top='36px';el.style.width='100%';el.style.height='calc(100% - 76px)';s.max=true;}else{el.style.left=s.ox+'px';el.style.top=s.oy+'px';el.style.width=s.ow+'px';el.style.height=s.oh+'px';s.max=false;}setTimeout(()=>el.style.transition='',220);}
+function bringFront(id){const el=document.getElementById('win-'+id);if(el)el.style.zIndex=++zTop;}
+
+// ══ DRAG ══
+let drag=null,dox=0,doy=0;
+function startDrag(e,id){if(e.target.classList.contains('wd'))return;drag=id;const r=document.getElementById('win-'+id).getBoundingClientRect();dox=e.clientX-r.left;doy=e.clientY-r.top;document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',stopDrag);}
+function onDrag(e){if(!drag)return;const el=document.getElementById('win-'+drag);if(!el)return;const os=document.getElementById('os').getBoundingClientRect();el.style.left=Math.max(0,e.clientX-os.left-dox)+'px';el.style.top=Math.max(36,e.clientY-os.top-doy)+'px';}
+function stopDrag(){drag=null;document.removeEventListener('mousemove',onDrag);document.removeEventListener('mouseup',stopDrag);}
+
+// ══ TERMINAL ══
+let hist=[],hidx=-1,cwd='/home/eshita';
+const FS={'/':['home/','projects/','skills.sys','about.txt','experience.log','certs.db'],'/home':['eshita/'],'/home/eshita':['README.md','links.txt'],'/projects':['devlens-ai/','codesnap/','stock-watchlist/'],'/projects/devlens-ai':['index.js','README.md'],'/projects/codesnap':['app.tsx','README.md'],'/projects/stock-watchlist':['App.jsx','README.md']};
+const FC={'README.md':`<span style="color:var(--c2)">ESHITA LOPES</span> — Computer Engineer\nType <span style="color:var(--c3)">help</span> for commands.`,'links.txt':`email → eshitalopes@gmail.com\nlinkedin → linkedin.com/in/eshita-lopes-9745452a3`,'skills.sys':`Java 88% · Python 82% · JS/TS 85%\nReact 84% · Next.js 84% · Node.js 78%\nAI/ML: Gemini · OpenAI · IBM Watson`,'experience.log':`QSpider — Java, SQL · Jan 2026–Present\nIBM SkillsBuild — AI/ML · Jun–Jul 2024\nInterPe — AI Dev · Dec 2023–Jan 2024`,'certs.db':`IBM · InterPe · Cybersecurity · AI Framework · Pen Testing\nView: ${L.certs}`,'/projects/devlens-ai/README.md':`DEVLENS AI\nGitHub: ${L.devlens_gh}\nDemo: ${L.devlens_demo}`,'/projects/codesnap/README.md':`CODESNAP\nGitHub: ${L.codesnap_gh}\nDemo: ${L.codesnap_demo}`,'/projects/stock-watchlist/README.md':`STOCK WATCHLIST\nGitHub: ${L.stock_gh}`};
+const CMDS={
+  help:()=>`<span style="color:var(--c2)">ls · cd · cat · pwd · whoami\nskills · projects · experience · certs · contact · files · clear · glitch · theme</span>`,
+  whoami:()=>`<span style="color:var(--c2)">eshita@localhost</span> · full-stack · ai-ml · Mumbai · <span style="color:var(--c3)">LVL5</span>`,
+  pwd:()=>cwd,
+  ls:(a)=>{SND.ls();const path=a[0]?rp(a[0]):cwd;const items=FS[path];if(!items)return`<span style="color:#f44">ls: no such dir</span>`;return items.map(i=>`<span style="color:${i.endsWith('/')?'var(--c2)':'var(--c1)'}">${i}</span>`).join('  ');},
+  cd:(a)=>{if(!a[0]||a[0]==='~'){cwd='/home/eshita';return'';}if(a[0]==='..'){const pp=cwd.split('/');pp.pop();cwd=pp.join('/')||'/';return'';}const np=rp(a[0].replace(/\/$/,''));if(FS[np]){cwd=np;return'';}return`<span style="color:#f44">no such dir</span>`;},
+  cat:(a)=>{if(!a[0])return`<span style="color:#f44">cat: missing file</span>`;const k=a[0].startsWith('/')?a[0]:cwd+'/'+a[0];return FC[a[0]]||FC[k]||`<span style="color:#f44">no such file: ${a[0]}</span>`;},
+  clear:()=>{setTimeout(()=>{const o=document.getElementById('term-out');if(o)o.innerHTML='';},10);return'';},
+  skills:()=>{openFile('skills');return'Opening skills.sys...';},
+  projects:()=>{openFile('projects');return'Opening projects...';},
+  experience:()=>{openFile('experience');return'Opening experience.log...';},
+  certs:()=>{openFile('certs');return'Opening certs.db...';},
+  contact:()=>{openContact();return'Opening uplink.exe...';},
+  files:()=>{openFM();return'Mounting filesystem...';},
+  glitch:()=>{doGlitch();return'<span style="color:var(--c3)">SIGNAL CORRUPTED</span>';},
+  theme:()=>{toggleTWPanel();return'Opening system settings...';},
+  matrix:()=>{setWallpaper('matrix');setTheme('matrix');return'Theme reset to MATRIX';},
+};
+function rp(p){if(p.startsWith('/'))return p;if(p==='.')return cwd;return cwd==='/'?'/'+p:cwd+'/'+p;}
+
+function openTerminal(){
+  const html=`<div style="height:100%;display:flex;flex-direction:column"><div class="term-out" id="term-out" style="flex:1;overflow-y:auto"><span style="color:var(--c2);font-size:12px;letter-spacing:2px">ESHITA_OS Terminal v3</span><br><span style="opacity:.4;font-size:10px">Type <span style="color:var(--c3)">help</span> · try <span style="color:var(--c3)">theme</span> to change look</span><br><br></div><div class="trow" style="padding:7px 11px;border-top:1px solid var(--border);flex-shrink:0"><span class="tprompt" id="tpl">eshita@os:${cwd}$</span><input class="tinput" id="tinp" autocomplete="off" spellcheck="false"></div></div>`;
+  const w=makeWin('terminal','terminal.sh',480,340,40,60,html);
+  if(!w)return;
+  setTimeout(()=>{const inp=document.getElementById('tinp');if(!inp)return;inp.addEventListener('keydown',termKey);inp.focus();},100);
+}
+function termKey(e){
+  if(e.key==='Enter'){const inp=e.target,raw=inp.value.trim();inp.value='';if(!raw)return;hist.unshift(raw);hidx=-1;runCmd(raw);const lbl=document.getElementById('tpl');if(lbl)lbl.textContent=`eshita@os:${cwd}$`;}
+  if(e.key==='ArrowUp'){e.preventDefault();if(hidx<hist.length-1){hidx++;e.target.value=hist[hidx];}}
+  if(e.key==='ArrowDown'){e.preventDefault();if(hidx>0){hidx--;e.target.value=hist[hidx];}else{hidx=-1;e.target.value='';}}
+  if(e.key!=='Enter')SND.terminal.type();
+}
+function runCmd(raw){
+  const out=document.getElementById('term-out');if(!out)return;
+  const[cmd,...args]=raw.split(' ');
+  out.innerHTML+=`<div class="trow"><span class="tprompt">eshita@os:${cwd}$</span>&nbsp;<span style="color:#fff">${raw}</span></div>`;
+  const fn=CMDS[cmd.toLowerCase()];
+  const res=fn?fn(args):`<span style="color:#f44">not found: ${cmd}</span>`;
+  if(res)out.innerHTML+=`<div style="padding-left:2px;white-space:pre-wrap;color:var(--c1);opacity:.8">${res}</div><br>`;
+  out.scrollTop=out.scrollHeight;
+}
+
+// ══ FILE MANAGER ══
+function openFM(path='/'){
+  const id='fm'+path.replace(/\//g,'_');
+  const items=FS[path]||[];
+  const html=`<div style="display:flex;flex-direction:column;height:100%"><div class="fmtb"><button class="fmbtn" onclick="openFM('/')">⌂ root</button><span style="color:var(--border);margin:0 4px">/</span><span style="font-size:8px;color:var(--c1);opacity:.5">${path}</span></div><div class="fmgrid">${items.map(i=>{const isd=i.endsWith('/');const nm=i.replace('/','');const fp=path==='/'?'/'+nm:path+'/'+nm;return`<div class="fmitem" ondblclick="${isd?`openFM('${fp}')`:`fmOpen('${fp}','${nm}')`}"><div class="fmicon">${isd?'📁':fIcon(nm)}</div><div class="fmname">${nm}</div></div>`;}).join('')}</div></div>`;
+  makeWin(id,'files — '+path,370,310,80,80,html);
+}
+function fIcon(f){if(f.endsWith('.md'))return'📄';if(/\.(js|ts|tsx|jsx)$/.test(f))return'⚙️';if(f.endsWith('.txt'))return'📝';if(f.endsWith('.sys'))return'⚡';if(f.endsWith('.log'))return'📋';if(f.endsWith('.db'))return'🗃️';return'📄';}
+function fmOpen(path,name){const c=FC[path]||FC[name];if(!c){notify('Cannot open binary');return;}makeWin('v'+name,name,340,260,100,100,`<div class="vb"><pre style="white-space:pre-wrap;font-family:inherit;font-size:10px;color:var(--c1);opacity:.85">${c}</pre></div>`);}
+
+// ══ VIEWERS ══
+function openFile(id){
+  const cfg={about:{t:'about.txt',w:330,h:340,x:50,y:70},skills:{t:'skills.sys',w:350,h:430,x:70,y:50},experience:{t:'experience.log',w:370,h:420,x:88,y:55},projects:{t:'projects/',w:420,h:510,x:55,y:44},certs:{t:'certs.db',w:380,h:430,x:98,y:68}}[id];
+  if(!cfg)return;
+
+  const BODIES={
+    about:`<div class="vb"><div class="vtitle">ESHITA LOPES</div><div class="vsub">COMPUTER ENGINEER · FULL-STACK · AI/ML · MUMBAI</div><div style="margin-bottom:13px"><div class="vkey">// IDENTITY</div><div style="opacity:.7;font-size:10.5px;line-height:1.8">Computer Engineering graduate with hands-on experience in full stack development and AI-powered applications. Proficient in Java, Python, JavaScript — building production tools with Next.js, Gemini API, and React.</div></div><div style="margin-bottom:13px"><div class="vkey">// LINKS</div><a class="vlink g" href="${L.email}">[ ✉ EMAIL ]</a><a class="vlink" href="${L.linkedin}" target="_blank">[ ↗ LINKEDIN ]</a><a class="vlink g" href="${L.phone}">[ ☎ CALL ]</a></div><div><div class="vkey">// INTERESTS</div><div style="opacity:.6;font-size:10px">Distributed systems · Algorithm optimization · Cybersecurity</div></div></div>`,
+
+    skills:`<div class="vb"><div class="vtitle">SKILL MATRIX</div><div class="vsub">// NEURAL SYSTEM DIAGNOSTICS</div>${[['Java',88],['Python',82],['JavaScript / TS',85],['React / Next.js',84],['Node.js / APIs',78],['SQL / MySQL',75],['AI/ML (Gemini)',72],['C / C++',65]].map(([n,p],i)=>`<div class="srow"><div class="stop" style="color:var(--c${i%4===0?1:i%4===1?2:i%4===2?3:4})"><span>${n}</span><span>${p}%</span></div><div class="sbg"><div class="sbar" data-w="${p}" style="background:var(--c${i%4===0?1:i%4===1?2:i%4===2?3:4})"></div></div></div>`).join('')}<div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:4px">${['Tailwind','Git','GCP','Docker','Kali Linux','Burp Suite','Wireshark','Nmap','WebSockets','Polygon.io','Monaco Editor'].map(t=>`<span class="vtag">${t}</span>`).join('')}</div></div>`,
+
+    experience:`<div class="vb"><div class="vtitle">DEPLOYMENT HISTORY</div><div class="vsub">// CLASSIFIED WORK RECORDS</div><div class="eblk"><div class="eco">QSpider</div><div class="erole">Java, SQL Developer</div><div class="edate">Jan 2026 – Present · Mumbai</div><div class="eli">Built multithreaded Java apps for high-load conditions</div><div class="eli">Distributed systems for reliability & scalability</div><div class="eli">Automated SQL maintenance scripts</div></div><div class="eblk" style="border-color:var(--c2)"><div class="eco" style="color:var(--c2)">IBM SkillsBuild</div><div class="erole">AI/ML Intern</div><div class="edate">Jun – Jul 2024 · Remote</div><div class="eli">Python algorithms & DS for ML pipeline optimization</div><div class="eli">Supervised & unsupervised learning on real datasets</div></div><div class="eblk" style="border-color:var(--c4)"><div class="eco" style="color:var(--c4)">InterPe</div><div class="erole">AI Developer</div><div class="edate">Dec 2023 – Jan 2024 · Remote</div><div class="eli">Scalable OOP software with SOLID & Design Patterns</div></div></div>`,
+
+    projects:`<div class="vb"><div class="vtitle">MISSION LOGS</div><div class="vsub">// LEVEL 5 CLEARANCE — ALL LINKS LIVE ✓</div><div class="pcard"><div style="font-size:8px;opacity:.4;letter-spacing:3px;margin-bottom:3px">PROJ-001</div><div class="pn">DEVLENS AI</div><div class="pd">AI code review with GitHub OAuth, PR diff fetching & Gemini 1.5 Flash vulnerability scanning.</div><div style="margin-bottom:9px">${['Next.js 14','NextAuth.js','GitHub REST API','Gemini API','Vercel'].map(t=>`<span class="vtag">${t}</span>`).join('')}</div><a href="${L.devlens_gh}" target="_blank" class="vlink g">[ ⌥ GitHub ]</a><a href="${L.devlens_demo}" target="_blank" class="vlink">[ ↗ Live Demo ]</a></div><div class="pcard" style="border-color:var(--c2);"><div class="pcard-left" style="background:var(--c2)"></div><div style="font-size:8px;opacity:.4;letter-spacing:3px;margin-bottom:3px">PROJ-002</div><div class="pn" style="color:var(--c2)">CODESNAP</div><div class="pd">AI code intelligence — line-by-line explanations, bug detection & auto Markdown docs.</div><div style="margin-bottom:9px">${['Next.js 14','TypeScript','Gemini 2.5 Flash','Monaco Editor','Vercel'].map(t=>`<span class="vtag">${t}</span>`).join('')}</div><a href="${L.codesnap_gh}" target="_blank" class="vlink g">[ ⌥ GitHub ]</a><a href="${L.codesnap_demo}" target="_blank" class="vlink">[ ↗ Live Demo ]</a></div><div class="pcard" style="border-color:var(--c4)"><div style="font-size:8px;opacity:.4;letter-spacing:3px;margin-bottom:3px">PROJ-003</div><div class="pn" style="color:var(--c4)">REAL-TIME STOCK WATCHLIST</div><div class="pd">Live stock tracking with WebSocket streams & Polygon.io for low-latency price monitoring.</div><div style="margin-bottom:9px">${['React','WebSockets','Polygon.io'].map(t=>`<span class="vtag">${t}</span>`).join('')}</div><a href="${L.stock_gh}" target="_blank" class="vlink g">[ ⌥ GitHub ]</a></div></div>`,
+
+    certs:`<div class="vb"><div class="vtitle">CERTIFICATIONS</div><div class="vsub">// VERIFIED CREDENTIALS — GOOGLE DRIVE ✓</div>${[['IBM SkillsBuild','IBM'],['InterPe Certificate','InterPe'],['Cybersecurity – MarCraft','MarCraft'],['AI Framework for Devs','Futureskills'],['Vuln & Pen Testing','Hacktiify']].map(([name,org],i)=>`<div class="ccard"><div><div class="cname">${name}</div><div class="cid">CERT-${String(i+1).padStart(3,'0')} · ${org} · VERIFIED ✓</div></div><a href="${L.certs}" target="_blank" class="vlink p">[ VIEW ↗ ]</a></div>`).join('')}<div style="margin:8px 0 14px"><a href="${L.certs}" target="_blank" class="vlink a" style="font-size:10px;padding:6px 14px">[ 📁 Open All on Google Drive ]</a></div><div style="border-top:1px solid var(--border);padding-top:12px"><div class="vkey">// EDUCATION</div><div style="border-left:2px solid var(--c3);padding-left:11px;margin:8px 0 9px"><div style="color:var(--c3);font-size:12px;font-weight:700">Xavier Institute of Engineering</div><div style="opacity:.5;font-size:9px;margin-top:2px">BE Computer Engineering · Jul 2022 – May 2026 · Mumbai</div></div><div style="border-left:2px solid var(--c3);opacity:.5;padding-left:11px"><div style="font-size:11px">Thomas Baptista Junior College</div><div style="font-size:9px;margin-top:2px">HSC · 2022 · Mumbai</div></div></div></div>`,
+  };
+
+  const w=makeWin(id,cfg.t,cfg.w,cfg.h,cfg.x,cfg.y,BODIES[id]);
+  if(!w)return;
+  if(id==='skills')setTimeout(()=>{document.querySelectorAll('.sbar[data-w]').forEach((b,i)=>setTimeout(()=>{b.style.width=b.dataset.w+'%';SND.skills.skillPop(i);},i*90));},200);
+}
+
+function openContact(){
+  const html=`<div class="vb"><div class="vtitle">UPLINK.EXE</div><div class="vsub">// ENCRYPTED CHANNEL — OPEN</div><div class="cfrow"><span class="cflbl">root:~$ NAME</span><input class="cfinp" id="cf-n" placeholder="identify yourself..."></div><div class="cfrow"><span class="cflbl">root:~$ EMAIL</span><input class="cfinp" id="cf-e" placeholder="your frequency..."></div><div class="cfrow"><span class="cflbl">root:~$ MSG</span><input class="cfinp" id="cf-m" placeholder="transmit payload..."></div><button class="cfsend" onclick="cfSend()">[ TRANSMIT ]</button><div style="font-size:9px;color:var(--c2);margin-top:8px;min-height:12px;letter-spacing:2px" id="cf-s"></div><div style="margin-top:12px;border-top:1px solid var(--border);padding-top:11px;display:flex;gap:6px;flex-wrap:wrap"><a href="${L.email}" class="vlink g">[ ✉ email ]</a><a href="${L.linkedin}" target="_blank" class="vlink">[ ↗ linkedin ]</a><a href="${L.phone}" class="vlink g">[ ☎ call ]</a></div></div>`;
+  makeWin('contact','uplink.exe',330,360,120,78,html);
+}
+function cfSend(){
+  const n=document.getElementById('cf-n')?.value,st=document.getElementById('cf-s');if(!st)return;
+  if(!n){st.textContent='// ERR: identification required';st.style.color='#f44';SND.err();return;}
+  let d=0;st.style.color='var(--c2)';
+  const iv=setInterval(()=>{st.textContent='// ENCRYPTING'+'.'.repeat(d++%4);SND.terminal.type();},220);
+  setTimeout(()=>{clearInterval(iv);st.textContent='// ✓ UPLINK CONFIRMED';st.style.color='var(--c1)';SND.ok();doGlitch();},2400);
+}
+
+document.getElementById('os').addEventListener('dblclick',e=>{if(['os','wallpaper','wc'].includes(e.target.id))openTerminal();});
+</script>
+</body>
+</html>
